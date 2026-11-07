@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="A local dashboard for nearby Wi-Fi discovery through Apple's CoreWLAN API.">
+  <title>Jarvis · Wi-Fi Discovery</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <script src="/static/dashboard.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="masthead">
+      <a class="brand" href="/" aria-label="Jarvis Wi-Fi Discovery home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none"><path d="M5 12a17 17 0 0 1 22 0M9 17a11 11 0 0 1 14 0M13 22a5 5 0 0 1 6 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="16" cy="27" r="1.8" fill="currentColor"/></svg>
+        </span>
+        <span><strong>JARVIS</strong><span class="brand-subtitle">Wi-Fi Discovery</span></span>
+      </a>
+      <div class="header-meta"><span class="local-label"><span class="tiny-dot"></span> Local on your Mac</span><span id="mode-badge" class="mode-badge">Loading</span></div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div><p class="eyebrow">YOUR WIRELESS SURROUNDINGS</p><h1 id="page-title">A clearer view of the air.</h1><p class="intro-copy">Discover nearby networks and understand the signal, channel, and advertised security that macOS makes available.</p></div>
+        <button id="scan-button" class="primary-button" type="button" disabled><svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="M16 7a6.5 6.5 0 1 0 .3 5M16 3v4h-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="scan-button-text">Loading agent…</span></button>
+      </section>
+
+      <div id="demo-banner" class="notice demo-notice" hidden><strong>Demo mode · sample networks</strong><span>This view uses fictional fixtures. It does not scan your Wi-Fi surroundings.</span></div>
+      <div id="error-banner" class="notice error-notice" role="alert" hidden><strong id="error-title">The scan could not complete.</strong><span id="error-message"></span><span id="error-remediation"></span></div>
+      <div id="warning-banner" class="notice warning-notice" hidden><strong>Scan details</strong><div id="warning-list"></div></div>
+
+      <section class="summary-grid" aria-label="Scan summary">
+        <article class="summary-card"><div class="stat-label">Access points observed<span class="stat-icon" aria-hidden="true">◎</span></div><div class="stat-value" id="total-count">—</div><div class="stat-detail" id="ssid-count">Run a scan to explore</div></article>
+        <article class="summary-card"><div class="stat-label">Strongest signal<span class="stat-icon" aria-hidden="true">↗</span></div><div class="stat-value" id="strongest-signal">—</div><div class="stat-detail" id="strongest-name">RSSI reported by macOS</div></article>
+        <article class="summary-card"><div class="stat-label">Modern security<span class="stat-icon" aria-hidden="true">◇</span></div><div class="stat-value" id="modern-count">—</div><div class="stat-detail">Reported WPA2 / WPA3 / OWE</div></article>
+        <article class="summary-card"><div class="stat-label">Open or legacy<span class="stat-icon" aria-hidden="true">△</span></div><div class="stat-value" id="attention-count">—</div><div class="stat-detail" id="attention-detail">Security details where exposed</div></article>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="panel networks-panel" aria-labelledby="networks-title">
+          <div class="panel-heading"><div><h2 id="networks-title">Nearby networks</h2><p id="scan-metadata">No scan yet · discovery starts when you choose</p></div><span id="scan-status" class="status-chip"><span class="tiny-dot"></span><span id="status-text">Ready</span></span></div>
+          <div class="filters">
+            <label class="search-box"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="visually-hidden">Search network names, BSSIDs or security</span><input id="search-input" type="search" placeholder="Search networks…" autocomplete="off" spellcheck="false"></label>
+            <label class="select-label"><span class="visually-hidden">Filter by frequency band</span><select id="band-filter"><option value="all">All bands</option><option value="2.4">2.4 GHz</option><option value="5">5 GHz</option><option value="6">6 GHz</option><option value="unknown">Unknown band</option></select></label>
+            <label class="select-label"><span class="visually-hidden">Sort networks</span><select id="sort-select"><option value="signal">Strongest first</option><option value="name">Name A–Z</option><option value="channel">Channel</option></select></label>
+          </div>
+          <div id="results-count" class="results-count" hidden></div>
+          <div id="empty-state" class="empty-state"><div class="empty-icon" aria-hidden="true">◎</div><h3 id="empty-title">Ready to discover.</h3><p id="empty-copy">Choose “Scan nearby networks” to take a snapshot. Your Mac’s existing connection stays under macOS control.</p></div>
+          <div id="table-wrap" class="table-wrap" hidden><table><caption class="visually-hidden">Nearby Wi-Fi access points and the details reported by macOS</caption><thead><tr><th scope="col">Network / access point</th><th scope="col">Signal</th><th scope="col">Channel</th><th scope="col">Security</th></tr></thead><tbody id="network-rows"></tbody></table></div>
+          <div class="panel-footer"><span class="tiny-dot"></span>Discovery only · no joining networks or credential attempts</div>
+        </section>
+
+        <aside class="sidebar">
+          <section class="panel channel-panel" aria-labelledby="channel-title"><div class="panel-heading compact"><div><p class="eyebrow">RADIO SNAPSHOT</p><h2 id="channel-title">Channel observations</h2></div></div><div id="channel-chart" class="channel-chart"><p class="muted">Channel counts appear after your first scan.</p></div><p class="chart-caveat">Counts show observed access points per primary channel. They do not measure airtime, interference, or the best channel to use.</p></section>
+          <section class="panel permissions-panel" aria-labelledby="permission-title"><div class="panel-heading compact"><div><p class="eyebrow">MACOS ACCESS</p><h2 id="permission-title">Location permission</h2></div></div><div class="permission-status"><span id="location-dot" class="tiny-dot"></span><strong id="location-status">Checking…</strong></div><p id="location-copy">macOS may require Location Services to reveal Wi-Fi network names and BSSIDs.</p><button id="location-button" class="secondary-button" type="button" disabled>Request location permission</button><p class="small muted">Privacy &amp; Security → Location Services in System Settings. Requests use Apple’s permission dialog.</p></section>
+          <section class="insight-card" aria-labelledby="insight-title"><div class="insight-symbol" aria-hidden="true">✦</div><h2 id="insight-title">A little context</h2><p id="insight-copy">Signal is a moment in time. A less negative RSSI is stronger; walls, distance, and radio conditions can change the next scan.</p></section>
+        </aside>
+      </div>
+      <section class="explanation" aria-label="How to read the results"><p><strong>Read the snapshot, not a verdict.</strong> Security labels describe capabilities advertised to macOS. They do not prove a network is trustworthy, configured correctly, or safe to join. An unavailable name can be hidden or withheld by macOS privacy controls.</p><p>CoreWLAN discovery may send ordinary Wi-Fi probe requests. This agent does not associate with networks, capture traffic, inspect devices, or retrieve credentials.</p></section>
+      <div id="live-announcement" class="visually-hidden" role="status" aria-live="polite"></div>
+    </main>
+    <footer class="site-footer"><span>JARVIS <span class="footer-separator">/</span> Wi-Fi Discovery</span><span id="runtime-info">Local dashboard · no cloud services</span><button id="stop-button" class="secondary-button" type="button">Stop agent</button></footer>
+  </div>
+</body>
+</html>

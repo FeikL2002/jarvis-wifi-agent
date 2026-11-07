@@ -1,0 +1,4 @@
+-r requirements.txt
+py2app==0.28.10
+# py2app's build dependencies still use pkg_resources.
+setuptools>=70,<81

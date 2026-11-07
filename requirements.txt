@@ -1,0 +1,5 @@
+# Validated native macOS bridges. Demo mode needs only the Python standard library.
+pyobjc-core==13.0; sys_platform == "darwin"
+pyobjc-framework-Cocoa==13.0; sys_platform == "darwin"
+pyobjc-framework-CoreWLAN==13.0; sys_platform == "darwin"
+pyobjc-framework-CoreLocation==13.0; sys_platform == "darwin"
